@@ -154,17 +154,29 @@ $(".main label").each(function(i, cur_label){
     var content = cur_label.dataset['content'];
     var url = "/?action=" + action;
     $(cur_label).click(function(){
-      $.ajax({
-        traditional: true,
-        type: "POST",
-        url: url,
-        data: $("#input_doc").val() ,
-        success: function(data){
-              //console.log(data);
-              $("#"+content).html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
-        },
-        dataType: "json"
-      });
+      var data = $("#input_doc").val();
+      var json_valid;
+      try {
+        JSON.parse(data);
+        json_valid = true;
+      } catch(err) {
+        console.log(err);
+        json_valid = false;
+        $("#"+content).html("<pre>"+$("<div>").text(err.message).html()+"</pre>");
+      }
+      if (json_valid) {
+        $.ajax({
+          traditional: true,
+          type: "POST",
+          url: url,
+          data: data,
+          success: function(data){
+                //console.log(data);
+                $("#"+content).html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+          },
+          dataType: "json"
+        });
+      }
     });
 
 });
