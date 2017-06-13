@@ -5,7 +5,10 @@ from tornado.options import define, options
 from subprocess import Popen, PIPE, STDOUT
 import json
 
-from config import RUBY_JSONLD_CMD
+try:
+    from config import RUBY_JSONLD_CMD
+except:
+    RUBY_JSONLD_CMD = 'jsonld'    # this assume jsonld is in the path settings
 
 doc = json.dumps({
     "@context": {
