@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>JSON-LD playground for 1.1 specs.</title>
+        <meta name="description" content="JSON-LD playground for 1.1 specs.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+		<style>
+		@import url('http://fonts.googleapis.com/css?family=Open+Sans:400,600,700');
+		@import url('http://fonts.googleapis.com/css?family=Bitter:400,700');
+
+		*, *:before, *:after {margin: 0; padding: 0; box-sizing: border-box;}
+		body {background: #2F2556; color: #B9B5C7; font: 14px 'Open Sans', sans-serif;}
+
+		/* You can safely remove the next two lines */
+		.top { padding-right: 20px; background: #261F41; text-align: right; }
+		a { color: rgba(255,255,255,0.6); text-transform: uppercase; text-decoration: none; line-height: 42px; }
+
+		h1 {padding: 20px 0; font-weight: 400; text-align: center;}
+		p {margin: 0 0 20px; line-height: 1.5;}
+
+		.main {margin: 0 auto; min-width: 320px; max-width: 800px;}
+		.content {background: #fff; color: #373737;}
+		.content > div {display: none; padding: 20px 25px 5px;}
+
+		input {display: none;}
+		label {display: inline-block; padding: 15px 25px; font-weight: 600; text-align: center;}
+		label:hover {color: #fff; cursor: pointer;}
+		input:checked + label {background: #ed5a6a; color: #fff;}
+
+		#tab1:checked ~ .content #content1,
+		#tab2:checked ~ .content #content2,
+		#tab3:checked ~ .content #content3,
+		#tab4:checked ~ .content #content4,
+		#tab5:checked ~ .content #content5,
+		#tab6:checked ~ .content #content6 {
+		  display: block;
+		}
+
+		@media screen and (max-width: 400px) { label {padding: 15px 10px;} }
+
+    textarea {
+      min-width: 320px;
+      max-width: 800px;
+      width: 800px;
+    	height: 200px;
+    	border: 1px solid #cccccc;
+    	padding: 5px;
+    	font-family: Bitter, Tahoma, sans-serif;
+    }
+		button {
+		  display: inline-block;
+		  margin: 10px 5px 10px 5px;
+		  padding: 10px 25px;
+		  font-size: 18px;
+		  font-family: "Bitter",serif;
+		  line-height: 1	;
+		  appearance: none;
+		  box-shadow: none;
+		  border-radius: 0;
+		}
+
+		button:focus {
+		  outline: none
+		}
+
+		button {
+		  color: #fff;
+		  background-color: #6496c8;
+		  text-shadow: -1px 1px #417cb8;
+		  border: none;
+		}
+
+		button:hover,
+		button.hover {
+		  background-color: #346392;
+		  text-shadow: -1px 1px #27496d;
+		}
+
+		button:active,
+		button.active {
+		  background-color: #27496d;
+		  text-shadow: -1px 1px #193047;
+		}
+    pre {
+      overflow: auto;
+      font-family: Bitter, Tahoma, sans-serif;
+    }
+		</style>
+	</head>
+	<body>
+
+		<div class="top">
+
+		</div>
+
+		<!--<h1><a href="file:///create-responsive-tabs-using-css-only-no-jquery/">Responsive CSS Tabs</a></h1>-->
+		<h1>JSON-LD playground for v1.1 specs</h1>
+
+		<div class="main">
+
+
+		<div>
+		<textarea id="input_doc">{
+  "@context": {
+	"name": "http://xmlns.com/foaf/0.1/name",
+	"homepage": "http://xmlns.com/foaf/0.1/homepage",
+	"avatar": "http://xmlns.com/foaf/0.1/avatar"
+  },
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/",
+  "avatar": "http://twitter.com/account/profile_image/manusporny"
+}</textarea>
+		<!-- <button  id="test_btn">Try it</button>-->
+		</div>
+		  <input id="tab1" type="radio" name="tabs" checked="">
+		  <label for="tab1" data-action="expand" data-content="content1">Expanded</label>
+
+		  <input id="tab2" type="radio" name="tabs">
+		  <label for="tab2" data-action="compact" data-content="content2">Compacted</label>
+
+		  <input id="tab3" type="radio" name="tabs">
+		  <label for="tab3" data-action="flatten" data-content="content3">Flattened</label>
+
+		  <input id="tab4" type="radio" name="tabs">
+		  <label for="tab4" data-action="frame" data-content="content4">Framed</label>
+
+		  <input id="tab5" type="radio" name="tabs">
+		  <label for="tab5" data-action="nquads" data-content="content5">N-Quards</label>
+
+		  <input id="tab6" type="radio" name="tabs">
+		  <label for="tab6" data-action="normalize" data-content="content6">Normalized</label>
+
+		  <div class="content">
+			  <div id="content1"></div>
+        <div id="content2"></div>
+        <div id="content3"></div>
+        <div id="content4"></div>
+        <div id="content5"></div>
+        <div id="content6"></div>
+		  </div>
+
+		</div>
+
+
+
+<script>
+
+$(".main label").each(function(i, cur_label){
+    var action = cur_label.dataset['action'];
+    var content = cur_label.dataset['content'];
+    var url = "/?action=" + action;
+    $(cur_label).click(function(){
+      $.ajax({
+        traditional: true,
+        type: "POST",
+        url: url,
+        data: $("#input_doc").val() ,
+        success: function(data){
+              //console.log(data);
+              $("#"+content).html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+        },
+        dataType: "json"
+      });
+    });
+
+});
+
+/*
+$("#tab1").click(function(){
+	$.ajax({
+	  traditional: true,
+	  type: "POST",
+	  url: "http://localhost:8000/?action=expand",
+	  data: $("#input_doc").val() ,
+	  success: function(data){
+                console.log(data);
+       		$("#content1").html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+	  },
+	  dataType: "json"
+	});
+});
+
+
+$("#tab2").click(function(){
+	$.ajax({
+	  traditional: true,
+	  type: "POST",
+	  url: "http://localhost:8000/?action=compact",
+	  data: $("#input_doc").val() ,
+	  success: function(data){
+                console.log(data);
+       		$("#content2").html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+	  },
+	  dataType: "json"
+	});
+});
+
+$("#tab3").click(function(){
+	$.ajax({
+	  traditional: true,
+	  type: "POST",
+	  url: "http://localhost:8000/?action=flatten",
+	  data: $("#input_doc").val() ,
+	  success: function(data){
+                console.log(data);
+       		$("#content3").html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+	  },
+	  dataType: "json"
+	});
+});
+
+
+$("#tab4").click(function(){
+	$.ajax({
+	  traditional: true,
+	  type: "POST",
+	  url: "http://localhost:8000/?action=frame",
+	  data: $("#input_doc").val() ,
+	  success: function(data){
+                console.log(data);
+       		$("#content4").html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+	  },
+	  dataType: "json"
+	});
+});
+
+
+$("#tab5").click(function(){
+	$.ajax({
+	  traditional: true,
+	  type: "POST",
+	  url: "http://localhost:8000/?action=nquads",
+	  data: $("#input_doc").val() ,
+	  success: function(data){
+                console.log(data);
+       		$("#content5").html("<pre>"+$("<div>").text(data.output).html()+"</pre>");
+	  },
+	  dataType: "json"
+	});
+});*/
+
+</script>
+
+</body></html>
