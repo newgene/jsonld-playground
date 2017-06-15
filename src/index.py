@@ -4,6 +4,8 @@ import tornado.web
 from tornado.options import define, options
 from subprocess import Popen, PIPE, STDOUT
 import json
+import tempfile
+import os
 
 try:
     from config import RUBY_JSONLD_CMD
@@ -31,7 +33,12 @@ def process_jsonld(doc, action="expand", frame=None):
     elif action == 'flatten':
         cmd += '--flatten'
     elif action == 'frame':
-        cmd += '--frame ./default_frame.jsonld'
+        tmp_frame_file = None
+        if frame:
+            tmp_frame_file = tempfile.mkstemp()[1]
+            with open(tmp_frame_file, 'w') as tmp_f:
+                tmp_f.write(str(frame))
+        cmd += '--frame ' + (tmp_frame_file or './default_frame.jsonld')
     elif action == 'nquads':
         cmd += '--validate --format nquads'
     elif action == 'normalize':
@@ -44,6 +51,8 @@ def process_jsonld(doc, action="expand", frame=None):
     #stdout_data = p.communicate(input=doc.encode('utf-8'))[0]
     stdout_data = p.communicate()[0]
     p.stdin.close()
+    if action == 'frame' and tmp_frame_file:
+        os.remove(tmp_frame_file)
     return stdout_data.decode()
 
 
@@ -67,10 +76,12 @@ class MainHandler(tornado.web.RequestHandler):
         self.render("index.html")
 
     def post(self):
-        doc = self.request.body.decode()
+        #doc = self.request.body.decode()
+        doc = self.get_argument('doc')
         action = self.get_argument('action', 'expand')
+        frame = self.get_argument('frame', None)
         self.set_header("Content-Type", "application/json; charset=UTF-8")
-        self.write(json.dumps({"output": process_jsonld(doc, action=action)}))
+        self.write(json.dumps({"output": process_jsonld(doc, action=action, frame=frame)}))
 
 
 def make_app():
