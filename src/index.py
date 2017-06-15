@@ -34,7 +34,7 @@ def process_jsonld(doc, action="expand", frame=None):
         cmd += '--flatten'
     elif action == 'frame':
         tmp_frame_file = None
-        if frame:
+        if isinstance(frame, str) and frame.strip() != '{}':
             tmp_frame_file = tempfile.mkstemp()[1]
             with open(tmp_frame_file, 'w') as tmp_f:
                 tmp_f.write(str(frame))
