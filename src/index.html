@@ -119,7 +119,7 @@
 
 
 		<div id="input_container">
-		<textarea id="input_doc">{
+		<textarea id="input_doc" placeholder="Enter your JSON-LD markup here...">{
   "@context": {
 	"name": "http://xmlns.com/foaf/0.1/name",
 	"homepage": "http://xmlns.com/foaf/0.1/homepage",
@@ -129,7 +129,7 @@
   "homepage": "http://manu.sporny.org/",
   "avatar": "http://twitter.com/account/profile_image/manusporny"
 }</textarea>
-    <textarea id="input_frame">{}</textarea>
+    <textarea id="input_frame" placeholder="Enter JSON-LD Frame here, default is &quot;{}&quot;."></textarea>
 		<!-- <button  id="test_btn">Try it</button>-->
 		</div>
 		  <input id="tab1" type="radio" name="tabs" checked="">
@@ -170,7 +170,7 @@ $(".main label").each(function(i, cur_label){
     var content = cur_label.dataset['content'];
     var url = "/?action=" + action;
     $(cur_label).click(function(){
-      var data = $("#input_doc").val();
+      var data = $("#input_doc").val().trim();
       action == 'frame'?$("#input_frame").show():$("#input_frame").hide();
       var json_valid;
       try {
@@ -183,7 +183,10 @@ $(".main label").each(function(i, cur_label){
       if (json_valid) {
         data = {"doc": data}
         if (action == 'frame'){
-          data["frame"] = $("#input_frame").val() || "{}";
+          var frame = $("#input_frame").val().trim();
+          if (frame && frame != '{}'){
+            data["frame"] = frame;
+          }
         }
         $.ajax({
           type: "POST",
