@@ -7,10 +7,18 @@ import json
 import tempfile
 import os
 
+# require to install json-ld, rdf, rdf-normalize gems first
+# or just install "linkeddata" meta-package
+#   gem install linkeddata
 try:
     from config import RUBY_JSONLD_CMD
 except:
     RUBY_JSONLD_CMD = 'jsonld'    # this assume jsonld is in the path settings
+try:
+    from config import RUBY_RDF_CMD
+except:
+    RUBY_RDF_CMD = 'rdf'    # this assume rdf is in the path settings
+
 
 doc = json.dumps({
     "@context": {
@@ -23,8 +31,9 @@ doc = json.dumps({
     "avatar": "http://twitter.com/account/profile_image/manusporny"
 })
 
+
 def process_jsonld(doc, action="expand", frame=None):
-    #cmd = 'ruby jsonld_test_cli.rb -a compact'
+    # cmd = 'ruby jsonld_test_cli.rb -a compact'
     cmd = RUBY_JSONLD_CMD + ' '
     if action == 'expand':
         cmd += '--expand'
@@ -42,17 +51,24 @@ def process_jsonld(doc, action="expand", frame=None):
     elif action == 'nquads':
         cmd += '--validate --format nquads'
     elif action == 'normalize':
-        cmd += '--validate --format nquads'
+        cmd = RUBY_RDF_CMD + ' serialize --output-format normalize'
+        tmp_doc_file = tempfile.mkstemp()[1]
+        with open(tmp_doc_file, 'w') as tmp_f:
+            tmp_f.write(doc)
+        cmd += ' ' + tmp_doc_file
     else:
         raise ValueError("Unknown action")
 
     p = Popen(cmd.split(), stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    p.stdin.write(doc.encode('utf-8'))
-    #stdout_data = p.communicate(input=doc.encode('utf-8'))[0]
+    if action != 'normalize':
+        p.stdin.write(doc.encode('utf-8'))
+    # stdout_data = p.communicate(input=doc.encode('utf-8'))[0]
     stdout_data = p.communicate()[0]
     p.stdin.close()
     if action == 'frame' and tmp_frame_file:
         os.remove(tmp_frame_file)
+    if action == 'normalize' and tmp_doc_file:
+        os.remove(tmp_doc_file)
     return stdout_data.decode()
 
 
@@ -71,12 +87,13 @@ if options.debug:
     logging.getLogger().setLevel(logging.DEBUG)
     options.address = '0.0.0.0'
 
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html")
 
     def post(self):
-        #doc = self.request.body.decode()
+        # doc = self.request.body.decode()
         doc = self.get_argument('doc')
         action = self.get_argument('action', 'expand')
         frame = self.get_argument('frame', None)
